@@ -17,12 +17,12 @@ class Socket
 {
 
 public:
-	Socket(unsigned short port);
+	Socket(uint16_t port);
 	~Socket();
 	void bind (void);
 
-	static int send(int fd, string msg, int attempt);
-    static string receive(int fd);
+	int send(string msg, int attempt = 1);
+    string receive(int32_t sourceDescriptor);
     void listen(int maxConnections);
     int accept();
     void connect();
@@ -33,6 +33,5 @@ public:
 
 private:
 	int32_t descriptor; // socket file descriptor
-	struct sockaddr_in address;
-
+	struct sockaddr_in address;;
 };

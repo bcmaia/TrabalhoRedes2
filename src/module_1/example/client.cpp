@@ -1,6 +1,6 @@
 // Client.cpp
 #include <iostream>
-#include "./socket.hpp"
+#include "../socket.hpp"
 
 int main()
 {
@@ -14,7 +14,7 @@ int main()
 
 		// Send a message to the server
 		std::string message = "Hello, server!";
-		clientSocket.send(clientSocket.getDescriptor(), message, 1);
+		clientSocket.send(message);
 
 		std::cout << "Message sent to the server: " << message << std::endl;
 	}

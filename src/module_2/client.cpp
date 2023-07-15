@@ -83,8 +83,6 @@ int main()
 		// Create a client socket
 		Socket clientSocket(8080);
 
-		
-
 		// Send a message to the server
 		bool active = true;
 		bool connected = false;

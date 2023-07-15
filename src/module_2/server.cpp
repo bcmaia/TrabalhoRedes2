@@ -17,29 +17,46 @@ int main()
 
 		std::cout << "Server is listening for connections..." << std::endl;
 
-		for ever {
+		while (true)
+		{
 			// Accept a client connection
 			int clientSocket = serverSocket.accept();
 
 			// Receive and display messages from the client until the connection is closed or a timeout occurs
-			while (true) {
-				try {
+			bool active = true;
+			while (active)
+			{
+				try
+				{
 					std::string receivedMessage = serverSocket.receive(clientSocket);
-					std::cout << "Received message from the client: " << receivedMessage << std::endl;
+					std::cout << "- Received message from the client: '" << receivedMessage << "'" << std::endl;
+
+					if (utils::hascmd(receivedMessage, "/quit"))
+					{
+						active = false;
+					}
+					else if (utils::hascmd(receivedMessage, "/ping"))
+					{
+						// Send a "pong" response back to the client
+						Socket::sendthis(clientSocket, "pong");
+					}
 				}
-				catch (const std::runtime_error &e) {
-					std::cerr << "Error: " << e.what() << std::endl;
+				catch (const std::runtime_error &e)
+				{
+					if (active)
+						std::cerr << "- [Error] " << e.what() << std::endl;
 					break; // Exit the inner loop if an error occurs during receiving
 				}
 			}
 
-			std::cout << "Client connection closed or timed out." << std::endl;
+			std::cout << "- Client connection closed or timed out." << std::endl;
 
 			// Close the client socket
 			close(clientSocket);
 		}
 	}
-	catch (const std::exception &e) {
+	catch (const std::exception &e)
+	{
 		std::cerr << "Exception occurred: " << e.what() << std::endl;
 	}
 

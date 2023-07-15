@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 
 #define MAX_MSG_SIZE (4096)
-#define TIME_OUT (60)
+#define TIME_OUT (600)
 
 using namespace std;
 
@@ -27,6 +27,8 @@ public:
     void listen(int maxConnections);
     int accept();
     void connect();
+
+	static int sendthis (int32_t descriptor, string msg, int attempt = 3);
 
 	int getDescriptor() const {
         return descriptor;

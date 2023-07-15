@@ -91,6 +91,46 @@ int Socket::send(string msg, int attempt)
     return static_cast<int>(msgLength);
 }
 
+int Socket::sendthis (int32_t descriptor, string msg, int attempt)
+{
+    // Split the message into chunks of maximum size (4096)
+    size_t msgLength = msg.length();
+    size_t chunkSize = MAX_MSG_SIZE - 1; // Leave space for null terminator
+    size_t numChunks = (msgLength + chunkSize - 1) / chunkSize;
+
+    // Iterato over each message chunk
+    for (size_t i = 0; i < numChunks; i++)
+    {
+        // Calculate the starting and ending positions for the current chunk
+        size_t start = i * chunkSize;
+        size_t end = start + chunkSize;
+        if (end > msgLength)
+        {
+            end = msgLength;
+        }
+
+        // Extract the current chunk from the message
+        string chunk = msg.substr(start, end - start);
+
+        // Send the current chunk to the specified file descriptor
+        ssize_t chuckLen = static_cast<ssize_t>(chunk.length());
+
+        // Attempts to send.
+        for (int j = attempt; 0 < j; j--)
+        {
+            ssize_t bytesSent = write(descriptor, chunk.c_str(), chuckLen);
+            if (chuckLen == bytesSent)
+                break; // sucess!
+            else if (0 < j)
+                continue; // try again
+            else
+                throw std::runtime_error("Failed to send message"); // defeat
+        }
+    }
+
+    return static_cast<int>(msgLength);
+}
+
 std::string Socket::receive(int32_t sourceDescriptor)
 {
     char buffer[MAX_MSG_SIZE];

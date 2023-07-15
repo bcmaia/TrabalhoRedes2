@@ -10,11 +10,13 @@
 std::mutex printMtx;
 std::mutex listenMtx;
 std::condition_variable cv;
+
 int serverDescriptor = 0;
 bool listenning = false;
 bool listenningActive = false;
 
 void listenFunc() {
+	// Monitor logic
     std::unique_lock<std::mutex> lock(listenMtx);
 
     while (!listenning) {

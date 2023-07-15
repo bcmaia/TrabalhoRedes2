@@ -23,7 +23,7 @@ public:
 	void bind (void);
 
 	int send(string msg, int attempt = 1);
-    string receive(int32_t sourceDescriptor);
+    static string receive(int32_t sourceDescriptor);
     void listen(int maxConnections);
     int accept();
     void connect();

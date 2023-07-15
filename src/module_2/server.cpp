@@ -2,6 +2,11 @@
 #include "../module_1/socket.hpp"
 #include "./utils.hpp"
 
+#include <mutex>
+#include <thread>
+
+
+
 int main()
 {
 	try
@@ -17,7 +22,7 @@ int main()
 
 		std::cout << "Server is listening for connections..." << std::endl;
 
-		while (true)
+		for (;;)
 		{
 			// Accept a client connection
 			int clientSocket = serverSocket.accept();

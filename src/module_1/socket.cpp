@@ -4,7 +4,7 @@ Socket::Socket(uint16_t port)
 {
     // Initializing the address structure to 0 to avoid errors.
     memset(&address, 0, sizeof(address));
-   
+
     // Create a TCP socket
     this->descriptor = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -74,34 +74,43 @@ int Socket::send(string msg, int attempt)
 
         // Send the current chunk to the specified file descriptor
         ssize_t chuckLen = static_cast<ssize_t>(chunk.length());
-        
+
         // Attempts to send.
         for (int j = attempt; 0 < j; j--)
         {
             ssize_t bytesSent = write(this->descriptor, chunk.c_str(), chuckLen);
-            if (chuckLen == bytesSent) break; // sucess!
-            else if (0 < j) continue; // try again
-            else throw std::runtime_error("Failed to send message"); // defeat
+            if (chuckLen == bytesSent)
+                break; // sucess!
+            else if (0 < j)
+                continue; // try again
+            else
+                throw std::runtime_error("Failed to send message"); // defeat
         }
     }
 
     return static_cast<int>(msgLength);
 }
 
-string Socket::receive(int32_t sourceDescriptor)
+std::string Socket::receive(int32_t sourceDescriptor)
 {
     char buffer[MAX_MSG_SIZE];
     memset(buffer, 0, sizeof(buffer));
 
     // Receive the message from the specified file descriptor
-    ssize_t bytesRead = read(sourceDescriptor, buffer, sizeof(buffer) - 1);
+    ssize_t bytesRead = recv(sourceDescriptor, buffer, sizeof(buffer) - 1, 0);
 
-    if (bytesRead < 0)
+    if (0 > bytesRead)
     {
+        // Error occurred while receiving data
         throw std::runtime_error("Failed to receive message");
     }
+    else if (0 == bytesRead)
+    {
+        // Connection closed by the client
+        throw std::runtime_error("Connection closed by the client");
+    }
 
-    return string(buffer);
+    return std::string(buffer);
 }
 
 void Socket::listen(int maxConnections)
@@ -122,10 +131,16 @@ int32_t Socket::accept()
     // Accept an incoming connection and get the client's socket descriptor
     int clientSocket = ::accept(descriptor, (struct sockaddr *)&clientAddress, &clientAddressLength);
 
-    if (clientSocket < 0)
+    if (0 > clientSocket)
     {
         throw std::runtime_error("Failed to accept connection");
     }
+
+    // Set receive timeout to 5 seconds for the client socket
+    struct timeval timeout;
+    timeout.tv_sec = TIME_OUT;
+    timeout.tv_usec = 0;
+    setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
     return clientSocket;
 }

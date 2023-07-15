@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 
 #define MAX_MSG_SIZE (4096)
+#define TIME_OUT (60)
 
 using namespace std;
 

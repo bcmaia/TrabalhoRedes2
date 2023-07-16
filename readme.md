@@ -114,11 +114,8 @@ Em seguida, qualquer linha de texto digitada pelo usuário no cliente,
 ## Vídeos
 Demonstrações do funcionamento de cada módulo, junto com uma breve explicação do código, estão disponíveis nos seguintes likes:
 
-TODO: ADICIONAR LINKS
 
-
-
-- [**Módulo 1**](https://youtu.be/pzJY4BsiD3w)
+- [**Módulo 1**](https://youtu.be/QhWooBvRnfU)
 
 - [**Módulo 2**](https://youtu.be/Jn79BAaS2Rc)
 

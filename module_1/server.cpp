@@ -1,6 +1,6 @@
 // Server.cpp
 #include <iostream>
-#include "../socket.hpp"
+#include "socket.hpp"
 
 int main()
 {

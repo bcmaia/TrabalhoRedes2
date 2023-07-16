@@ -8,3 +8,5 @@ mk-client:
 mk-server:
 	g++ -o server server.cpp utils.cpp ../module_1/socket.cpp
 
+clean:
+	rm server client

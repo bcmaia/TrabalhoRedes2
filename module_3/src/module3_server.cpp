@@ -26,6 +26,7 @@ void closeConnection(int fd){
 }
 
 void shuts_down_client(int client_index){
+    cout << "shutting down " << client_index << "\n";
     closeConnection(clients[client_index]);
     if(client_channels[client_index] != -1){
         int holder = client_channels[client_index];
@@ -98,7 +99,7 @@ string random_nickname(){
         nickname += extras[rand()%19];
     }
 
-    nickname += "_" + to_string(rand()%100);
+    nickname += "_" + to_string(rand()%100) + "\n";
 
 
     return nickname;
@@ -191,6 +192,7 @@ int main(){
                 message = Socket::receive(currFD);
 
                 if(isCommand(message)){
+                    cout << message <<"\n";
                     if(!(message.substr(0,6)).compare("/join ")){
                         string searched_name = message.substr(6);
                         int channel_index = -1;
@@ -201,9 +203,10 @@ int main(){
                                 break;
                             }
                         }
-                        cout << "  searched\n";
+                        cout << "searched "<< channel_index <<" \n";
 
                         if(channel_index == -1 && number_of_occupied_channels < MAX_CHANNELS){
+                            cout << "creating new channel\n";
                             number_of_occupied_channels++;
                             int c;
                             for(c=0;c<MAX_CLIENTS;c++){
@@ -308,8 +311,9 @@ int main(){
 
                         for(int c=0; c < MAX_CHANNELS; c++){    //  Prints channel names in a single line
                             if(occupied_channels[c] == 1 ){
-                                ch_name_holder = channels[c].substr(0,(channels[c].length()-2));    //  removes \n from channel name
-                                available_channels += " { " + channels[c] + " } ";
+                                ch_name_holder = channels[c];    //  removes \n from channel name
+                                ch_name_holder.pop_back();
+                                available_channels += " { " + ch_name_holder + " } ";
                             }
                         }
 
@@ -329,12 +333,7 @@ int main(){
                         }
                         shuts_down_client(i);
                         break;
-                    } else if(client_channel == -1){
-                        err = Socket::send(currFD, "Invalid command. Please enter a channel with /join CHANNELNAME. See available channels with /list.", 0);
-                        if (err == -1){
-                            shuts_down_client(i);
-                        }
-                    }else if(!message.compare("/ping\n")){
+                    } else if(!message.compare("/ping\n")){
                         err = Socket::send(currFD, "pong", 0);
                         if (err == -1){
                             if(admin[client_channel] == i){
@@ -344,7 +343,12 @@ int main(){
                         }
                         pongFlag++;
                         break;
-                    } else if(admin[client_channel] == i){   //  Admin permission check
+                    }else if(client_channel == -1){
+                        err = Socket::send(currFD, "Invalid command. Please enter a channel with /join CHANNELNAME. See available channels with /list.", 0);
+                        if (err == -1){
+                            shuts_down_client(i);
+                        }
+                    }  else if(admin[client_channel] == i){   //  Admin permission check
                         int client_index = -1;
                         
                         if(!(message.substr(0,6)).compare("/kick ")){
@@ -499,20 +503,27 @@ int main(){
                             shuts_down_client(i);
                         }
                     }
-                } else if (!pongFlag){
-                    message.pop_back();
+                } else if (!pongFlag && client_channel>-1){
                     string name = client_names[i];
+                    name.pop_back();
+                    cout << name << " in channel " << client_channel << " sending message: "<< message;
+                    message.pop_back();
+
                     string fmtMessage = name.substr(0,(name.length()-1)) + ": " + message + "\n";
+                    cout << "as: " << fmtMessage;
                     int client_holder;
-                    if(client_muted[i][client_channel] == 1){
+                    if(client_muted[i][client_channel] != 1){
+                        cout << "cliente not muted\n"; 
                         for(int j = 0; j < MAX_CLIENTS; j++){
                             client_holder = channel_clients[client_channel][j];
-                            err = Socket::send(clients[client_holder], fmtMessage, 0);
-                            if (err == -1){
-                                if(admin[client_channel] == client_holder){
-                                    shuts_down_channel(client_channel);
+                            if(client_holder == -1){
+                                err = Socket::send(clients[client_holder], fmtMessage, 0);
+                                if (err == -1){
+                                    if(admin[client_channel] == client_holder){
+                                        shuts_down_channel(client_channel);
+                                    }
+                                    shuts_down_client(client_holder);
                                 }
-                                shuts_down_client(client_holder);
                             }
                         }
                     }

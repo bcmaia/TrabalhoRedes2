@@ -18,7 +18,8 @@ O projeto está organizado nos seguintes arquivos e diretórios:
  módulo 1 são simples e servem apenas para demonstrar o funcionamento do socket.
 - `module_2/client.cpp` e `module_2/server.cpp`: Códigos-fonte para o cliente e servidor do módulo 2, respectivamente. O cliente estabelece uma conexão com o servidor e permite a troca de mensagens entre vários clientes conectados ao servidor.
 - `module_2/utils.cpp` e `module_2/utils.hpp`: Contém uma função útil na comparação de strings.
-- `module_1/Makefile` e `module_2/Makefile`: Os Makefiles de cada módulo. Contém targets `make all`, `make clean`, `make mk-client` e `make mk-server`.
+- `module_3/client.cpp` e `module_3/server.cpp`: Códigos-fonte para o cliente e servidor do módulo 3, respectivamente. O cliente estabelece uma conexão com o servidor e envia comandos e mensagens ao servidor. O servidor armazena os canais, quais clientes estão em quais canais e em quais canais cada cliente está banido ou mutado, assim como admnistra os comandos, pesquisas por nomes e para quais clientes as mensagens em cada canal são enviadas. 
+- `module_1/Makefile` e `module_2/Makefile`, `module_3/Makefile`: Os Makefiles de cada módulo. Contém targets `make all`, `make clean`, `make mk-client`, `make mk-server`, `make run-server-3` e `make run-client-3`.
 
 ## Ambiente e pacotes utilizados
 O código foi compilado e testado em uma máquina de 64bits em um sistema 
@@ -110,7 +111,48 @@ O módulo 2 oferece no cliente comandos para gerenciar a troca de mensagens:
 Ao abrir o cliente, o comando `/connect` deve ser executado primeiro.
 Em seguida, qualquer linha de texto digitada pelo usuário no cliente, 
  que não contenha comandos, será enviada para o servidor.
- 
+
+### Módulo 3
+
+Para compilar o cliente e servidor do módulo 3, execute o seguinte comando no terminal:
+
+```bash
+cd module_3
+make all
+```
+
+Isso irá gerar os executáveis `client3` e `server3`. Primeiro, execute o servidor com o comando:
+
+```bash
+make run-server-3
+```
+
+Em seguida, execute clientes em outras janelas do terminal:
+
+```bash
+make run-client-3
+```
+
+Os clientes iram se conectar ao servidor que irá administrar os comandos e mensagens enviados a ele.
+
+#### Uso e comandos do módulo 3
+No módulo 3, o servidor lida com os seguintes comandos normais:
+- `/join CHANNELNAME`: Verifica se existe um canal com o nome CHANNELNAME. Se sim, verifica se o canal não está cheio e executa a entrada do cliente no canal (e saída do canal em que está). Se não, verifica se é possível criar mais um canal e se sim, cria o canal e coloca o cliente que criou ele como admnistrador (tirando ele do canal em que estava antes). Caso o admnistrador saia do canal, o canal é fechado.
+- `/nickname NICKNAME`: Altera o nickname do cliente para NICKNAME caso tenha menos de 50 caracteres.
+- `/ping`: envia de volta ao cliente um pong.
+- `/quit`: remove o cliente do canal que estive e desconecta o cliente do servidor
+
+Além dos seguintes comandos de admnistrador:
+- `/kick NICKNAME`: bane usuário do canal, não permitindo entrada futura e removendo ele se estiver no canal.
+- `/mute NICKNAME`: deixa o usuário mudo no canal, mesmo que ele não esteja no canal para evitar de sair e voltar ao canal remover o efeito.
+- `unmute NICKNAME`: deixa o usuário não mudo no canal.
+- `Whois NICKNAME`: retorna o IP do usuário NICKNAME.
+  
+Ao abrir o cliente, o comando `/connect` deve ser executado primeiro.
+Em seguida, qualquer linha de texto digitada pelo usuário no cliente, 
+que não contenha comandos será enviada como para o servidor como
+mensagem, mas só serão re-enviadas caso o cliente esteja num canal.
+
 ## Vídeos
 Demonstrações do funcionamento de cada módulo, junto com uma breve explicação do código, estão disponíveis nos seguintes likes:
 
@@ -118,4 +160,6 @@ Demonstrações do funcionamento de cada módulo, junto com uma breve explicaç�
 - [**Módulo 1**](https://youtu.be/QhWooBvRnfU)
 
 - [**Módulo 2**](https://youtu.be/Jn79BAaS2Rc)
+
+- [**Módulo 3**](https://youtu.be/CRXyPqnBBAU)
 

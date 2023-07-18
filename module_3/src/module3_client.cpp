@@ -32,18 +32,26 @@ void listenFromServer(){
 
 void sendToServer(){
     string message;
+    Socket s = Socket(PORT);
 
     while (true){
             message = read_line_from_file(stdin);
-            Socket::send(serverFD, message, 0);
-
 
             if (isCommand(message)) {
+                Socket::send(serverFD, message, 0);
                 message = Socket::receive(serverFD);
+                if(message == "sendIP"){
+                    cout << "sendIP  ";
+                    message = s.getAddress();
+                    Socket::send(serverFD, message, 0);
+                    message = Socket::receive(serverFD);
+                }
                 cout << message << endl;
                 if (message == "bye"){
                     return;
                 }
+            }else{
+                Socket::send(serverFD, message, 0);
             }
         }
 }

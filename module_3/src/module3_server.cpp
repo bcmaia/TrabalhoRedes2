@@ -60,11 +60,14 @@ void shuts_down_client(int client_index){
 void shuts_down_channel(int channel_index){
     int err;
     for(int j = 0; j < MAX_CLIENTS; j++){
-        err = Socket::send(clients[channel_clients[j][channel_index]], "Channel shutting down.", 0);
-        if (err == -1){
-            shuts_down_client(clients[j]);
+        if(channel_clients[j][channel_index] != -1){
+            err = Socket::send(clients[channel_clients[j][channel_index]], "Channel shutting down.", 0);
+            if (err == -1){
+                shuts_down_client(clients[j]);
+            }
         }
     }
+
     for(int c=0; c < MAX_NUMBER_CLIENTS; c++){
         if(client_channels[c] == channel_index){
             client_channels[c] = -1;
@@ -81,6 +84,7 @@ void shuts_down_channel(int channel_index){
     channels[channel_index] = "";
     occupied_channels[channel_index] = 0;
     number_of_occupied_channels--;
+    return;
 }
 
 string random_nickname(){
@@ -250,8 +254,9 @@ int main(){
                             int j=0;
 
                             cout<< "Client current channel: " << client_channel;
-                            cout << "Banned? "<< client_kicked[i][channel_index] << "\n";
+                            cout << "  Banned from entered channel? "<< client_kicked[i][channel_index] << "\n";
                             if(client_channel>-1){
+                                cout << "leaving previous channel\n";
                                 for(j=0;j<MAX_CLIENTS;j++){
                                     if(channel_clients[client_channel][j] == i){
                                         channel_clients[client_channel][j] = -1;
@@ -330,8 +335,10 @@ int main(){
                     } else if(!message.compare("/quit\n")){
                         if(admin[client_channel] == i){
                             shuts_down_channel(client_channel);
+                            shuts_down_client(i);
+                        } else{
+                            shuts_down_client(i);
                         }
-                        shuts_down_client(i);
                         break;
                     } else if(!message.compare("/ping\n")){
                         err = Socket::send(currFD, "pong", 0);
@@ -343,7 +350,7 @@ int main(){
                         }
                         pongFlag++;
                         break;
-                    }else if(client_channel == -1){
+                    } else if(client_channel == -1){
                         err = Socket::send(currFD, "Invalid command. Please enter a channel with /join CHANNELNAME. See available channels with /list.", 0);
                         if (err == -1){
                             shuts_down_client(i);
@@ -462,27 +469,37 @@ int main(){
                             break;
                         } else if(!(message.substr(0,7)).compare("/Whois ")){
                             string searched_name = message.substr(7);
-                            int client_index;
+                            int client_index = -1;
+                            cout << "searching client\n";
                             for(int c=0; c < MAX_NUMBER_CLIENTS; c++){    //  Searches for client
                                 if(!searched_name.compare(client_names[c])){
                                     client_index = c;
                                     break;
                                 }
                             }
+                            cout << "searched client\n";
 
                             if(client_index == -1){
+                                cout << "Client not found\n";
                                 err = Socket::send(currFD, "Client not found.", 0);
                                 if (err == -1){
                                     shuts_down_client(i);
                                     shuts_down_channel(client_channel);
                                 }
                             } else {
-                                Socket::send(serverFD, "sendIP", 0);
-                                message = Socket::receive(currFD);
-                                err = Socket::send(currFD, message, 0);
+                                cout << "Asking IP\n";
+                                err = Socket::send(client_index, "sendIP", 0);
                                 if (err == -1){
-                                    shuts_down_client(i);
-                                    shuts_down_channel(client_channel);
+                                    shuts_down_client(client_index);
+                                } else{
+                                    message = Socket::receive(client_index);
+                                    cout << "Received IP"<< message <<"\n";
+                                    cout << "Sending IP to admin\n";
+                                    err = Socket::send(currFD, message, 0);
+                                    if (err == -1){
+                                        shuts_down_client(i);
+                                        shuts_down_channel(client_channel);
+                                    }   
                                 }
                             }
                             break;
@@ -509,14 +526,14 @@ int main(){
                     cout << name << " in channel " << client_channel << " sending message: "<< message;
                     message.pop_back();
 
-                    string fmtMessage = name.substr(0,(name.length()-1)) + ": " + message + "\n";
+                    string fmtMessage = "  "+ name + ": " + message + "\n";
                     cout << "as: " << fmtMessage;
                     int client_holder;
                     if(client_muted[i][client_channel] != 1){
                         cout << "cliente not muted\n"; 
                         for(int j = 0; j < MAX_CLIENTS; j++){
                             client_holder = channel_clients[client_channel][j];
-                            if(client_holder == -1){
+                            if(client_holder != -1){
                                 err = Socket::send(clients[client_holder], fmtMessage, 0);
                                 if (err == -1){
                                     if(admin[client_channel] == client_holder){
